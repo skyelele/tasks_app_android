@@ -1,19 +1,21 @@
 package com.timbuchalka.tasktimer;
 
-import android.content.ContentResolver;
-import android.database.Cursor;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+
+    // Whether or not thje activity is in 2-pane mode
+    // i.e. running in landscape on a tablet
+    private boolean mTwoPane = false;
+
+    private static final String ADD_EDIT_FRAGMENT = "AddEditFragment";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,38 +25,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        String[] projection = { TasksContract.Columns.TASKS_NAME, TasksContract.Columns.TASKS_DESCRIPTION};
-        ContentResolver contentResolver = getContentResolver();
-//        Cursor cursor = contentResolver.query(TasksContract.CONTENT_URI,
-        Cursor cursor = contentResolver.query(TasksContract.buildTaskUri(3),
-                projection,
-                null,
-                null,
-                TasksContract.Columns.TASKS_SORTORDER);
-
-        if(cursor != null) {
-            Log.d(TAG, "onCreate: number of rows: " + cursor.getCount());
-            while(cursor.moveToNext()) {
-                for(int i=0; i<cursor.getColumnCount(); i++) {
-                    Log.d(TAG, "onCreate: " + cursor.getColumnName(i) + ": " + cursor.getString(i));
-                }
-                Log.d(TAG, "onCreate: ===============================");
-            }
-            cursor.close();
-        }
 
 
-//        AppDatabase appDatabase = AppDatabase.getInstance(this);
-//        final SQLiteDatabase db = appDatabase.getReadableDatabase();
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
     }
 
     @Override
@@ -72,10 +44,57 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch(id) {
+            case R.id.menumain_addTask:
+                taskEditRequest(null);
+                break;
+            case R.id.menumain_showDurations:
+                break;
+            case R.id.menumain_settings:
+                break;
+            case R.id.menumain_showAbout:
+                break;
+            case R.id.menumain_generate:
+                break;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void taskEditRequest(Task task) {
+        Log.d(TAG, "taskEditRequest: starts");
+        if(mTwoPane) {
+            Log.d(TAG, "taskEditRequest: in two-pane mode (tablet)");
+        } else {
+            Log.d(TAG, "taskEditRequest: in single-pane mode (phone)");
+            // in single-pane mode, start the detail activity for the selected item Id.
+            Intent detailIntent = new Intent(this, AddEditActivity.class);
+            if(task != null) { // editing a task
+                detailIntent.putExtra(Task.class.getSimpleName(), task);
+                startActivity(detailIntent);
+            } else { // adding a new task
+                startActivity(detailIntent);
+            }
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
